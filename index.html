@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U. Lucas · Unterrichtsmaterialien</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bio:      #2d7a4f;
+      --bio-light:#e8f5ee;
+      --bio-mid:  #1a5436;
+      --chemie:   #6b3fa0;
+      --chemie-light:#f0e8fa;
+      --chemie-mid:#4a2870;
+      --physik:   #1a4a7a;
+      --physik-light:#e3edf8;
+      --physik-mid:#0f2f54;
+      --info:     #2b2b2b;
+      --info-light:#f0ede8;
+      --info-mid: #111111;
+      --info-accent:#e07b39;
+      --bg:       #faf8f5;
+      --surface:  #ffffff;
+      --text:     #1a1a1a;
+      --muted:    #888;
+      --border:   #e8e4de;
+      --shadow:   0 4px 24px rgba(0,0,0,0.08);
+      --shadow-hover: 0 12px 40px rgba(0,0,0,0.14);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN OVERLAY ─────────────────────────────────────── */
+    #login-overlay {
+      position: fixed; inset: 0;
+      background: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease;
+    }
+    #login-overlay.hidden {
+      opacity: 0; pointer-events: none;
+    }
+    .login-box {
+      text-align: center;
+      padding: 3rem 2.5rem;
+      max-width: 380px; width: 90%;
+    }
+    .login-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.4rem;
+      color: #fff;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.3rem;
+    }
+    .login-sub {
+      color: #888;
+      font-size: 0.85rem;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 2.5rem;
+    }
+    .login-input-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .login-input-wrap input {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 0.9rem 1.2rem;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+      letter-spacing: 0.1em;
+    }
+    .login-input-wrap input:focus {
+      border-color: rgba(255,255,255,0.4);
+    }
+    .login-input-wrap input::placeholder { color: #666; }
+    .login-btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: #fff;
+      color: var(--text);
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+    }
+    .login-btn:hover { background: #e8e4de; }
+    .login-btn:active { transform: scale(0.98); }
+    .login-error {
+      color: #ff6b6b;
+      font-size: 0.82rem;
+      margin-top: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .login-error.show { opacity: 1; }
+
+    /* ── MAIN CONTENT ──────────────────────────────────────── */
+    #main { opacity: 0; transition: opacity 0.6s ease 0.1s; }
+    #main.visible { opacity: 1; }
+
+    /* ── HEADER ────────────────────────────────────────────── */
+    header {
+      background: var(--text);
+      color: #fff;
+      padding: 2rem 3rem 1.8rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .header-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .header-title span {
+      font-style: italic;
+      color: #aaa;
+    }
+    .header-meta {
+      font-size: 0.78rem;
+      color: #777;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 300;
+      text-align: right;
+      line-height: 1.8;
+    }
+
+    /* ── NAV STRIP ─────────────────────────────────────────── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 3rem;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+    nav button {
+      padding: 1rem 1.5rem;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+      letter-spacing: 0.03em;
+    }
+    nav button:hover { color: var(--text); }
+    nav button.active { color: var(--text); border-bottom-color: var(--text); }
+    nav button[data-fach="Biologie"].active  { color: var(--bio);    border-bottom-color: var(--bio); }
+    nav button[data-fach="Chemie"].active    { color: var(--chemie); border-bottom-color: var(--chemie); }
+    nav button[data-fach="Physik"].active    { color: var(--physik); border-bottom-color: var(--physik); }
+    nav button[data-fach="Informatik"].active{ color: var(--info-accent); border-bottom-color: var(--info-accent); }
+
+    /* ── MAIN GRID ─────────────────────────────────────────── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 3rem 5rem;
+    }
+
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      margin-bottom: 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .section-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.6rem 1.8rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      display: block;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--card-color, #ccc);
+      transition: height 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+      border-color: transparent;
+    }
+    .card:hover::before { height: 5px; }
+
+    .card-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--card-color, #999);
+      margin-bottom: 0.6rem;
+    }
+    .card-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.15rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+    .card-desc {
+      font-size: 0.83rem;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+    .card-footer {
+      margin-top: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-tag {
+      font-size: 0.72rem;
+      padding: 0.25rem 0.7rem;
+      border-radius: 20px;
+      background: var(--card-bg, #f5f5f5);
+      color: var(--card-color, #888);
+      font-weight: 500;
+    }
+    .card-icon {
+      margin-left: auto;
+      font-size: 1.2rem;
+      opacity: 0.5;
+    }
+
+    /* Fach-Farben auf Cards */
+    .bio   { --card-color: var(--bio);    --card-bg: var(--bio-light); }
+    .chem  { --card-color: var(--chemie); --card-bg: var(--chemie-light); }
+    .phys  { --card-color: var(--physik); --card-bg: var(--physik-light); }
+    .info  { --card-color: var(--info-accent); --card-bg: var(--info-light); }
+
+    /* ── FACH-SEKTIONEN ────────────────────────────────────── */
+    .fach-section { display: none; }
+    .fach-section.visible { display: block; }
+
+    /* ── ALLE-ANSICHT ──────────────────────────────────────── */
+    .alle-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 700px) { .alle-grid { grid-template-columns: 1fr; } }
+
+    .fach-kachel {
+      border-radius: 16px;
+      padding: 2rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .fach-kachel:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+    .fach-kachel-bg {
+      position: absolute; inset: 0;
+      opacity: 0.12;
+      font-size: 8rem;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: 1.5rem;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .fach-kachel .k-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      opacity: 0.7;
+    }
+    .fach-kachel .k-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+    .fach-kachel .k-count {
+      font-size: 0.82rem;
+      margin-top: 0.5rem;
+      opacity: 0.6;
+      font-weight: 300;
+    }
+
+    .k-bio   { background: var(--bio-light);    color: var(--bio-mid); }
+    .k-chem  { background: var(--chemie-light); color: var(--chemie-mid); }
+    .k-phys  { background: var(--physik-light); color: var(--physik-mid); }
+    .k-info  { background: var(--info-light);   color: var(--info); }
+    .k-info .k-name { color: var(--info); }
+
+    /* ── FOOTER ────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.75rem;
+      color: #bbb;
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.08em;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 1.5rem; }
+      main { padding: 2rem 1.5rem 4rem; }
+      nav { padding: 0 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN ─────────────────────────────────────────────── -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">U. Lucas</div>
+    <div class="login-sub">Schulzentrum Oberes Elztal</div>
+    <div class="login-input-wrap">
+      <input type="password" id="pw-input" placeholder="Passwort eingeben …" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="checkLogin()">Einloggen →</button>
+    <div class="login-error" id="login-error">Falsches Passwort. Bitte erneut versuchen.</div>
+  </div>
+</div>
+
+<!-- ── HAUPTBEREICH ───────────────────────────────────────── -->
+<div id="main">
+  <header>
+    <div class="header-title">Unterrichts&shy;<span>materialien</span></div>
+    <div class="header-meta">
+      U. Lucas<br>
+      Schulzentrum Oberes Elztal<br>
+      Biologie · Chemie · Physik · Informatik
+    </div>
+  </header>
+
+  <nav>
+    <button class="active" data-fach="alle" onclick="showFach('alle', this)">Alle Fächer</button>
+    <button data-fach="Biologie"   onclick="showFach('Biologie', this)">Biologie</button>
+    <button data-fach="Chemie"     onclick="showFach('Chemie', this)">Chemie</button>
+    <button data-fach="Physik"     onclick="showFach('Physik', this)">Physik</button>
+    <button data-fach="Informatik" onclick="showFach('Informatik', this)">Informatik</button>
+  </nav>
+
+  <main>
+
+    <!-- ALLE-ANSICHT -->
+    <div id="sec-alle" class="fach-section visible">
+      <div class="alle-grid">
+        <div class="fach-kachel k-bio" onclick="showFach('Biologie', document.querySelector('[data-fach=Biologie]'))">
+          <div class="fach-kachel-bg">🌿</div>
+          <div class="k-label">Naturwissenschaft</div>
+          <div class="k-name">Biologie</div>
+          <div class="k-count" id="count-bio">— Materialien</div>
+        </div>
+        <div class="fach-kachel k-chem" onclick="showFach('Chemie', document.querySelector('[data-fach=Chemie]'))">
+          <div class="fach-kachel-bg">⚗️</div>
+          <div class="k-label">Naturwissenschaft</div>
+          <div class="k-name">Chemie</div>
+          <div class="k-count" id="count-chem">— Materialien</div>
+        </div>
+        <div class="fach-kachel k-phys" onclick="showFach('Physik', document.querySelector('[data-fach=Physik]'))">
+          <div class="fach-kachel-bg">⚛️</div>
+          <div class="k-label">Naturwissenschaft</div>
+          <div class="k-name">Physik</div>
+          <div class="k-count" id="count-phys">— Materialien</div>
+        </div>
+        <div class="fach-kachel k-info" onclick="showFach('Informatik', document.querySelector('[data-fach=Informatik]'))">
+          <div class="fach-kachel-bg">💻</div>
+          <div class="k-label">Technik</div>
+          <div class="k-name">Informatik</div>
+          <div class="k-count" id="count-info">— Materialien</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIOLOGIE -->
+    <div id="sec-Biologie" class="fach-section">
+      <div class="section-title">
+        <span class="section-dot" style="background:var(--bio)"></span>
+        Biologie
+      </div>
+      <div class="cards-grid" id="grid-Biologie">
+        <!-- Beispielkarten – durch eigene Links ersetzen -->
+        <a class="card bio" href="https://dein-link.github.io/mendel" target="_blank">
+          <div class="card-label">Klasse 9</div>
+          <div class="card-title">Mendel'sche Gesetze</div>
+          <div class="card-desc">Interaktives Drag-and-Drop zu Erbgängen mit Meerschweinchen-Kreuzungen</div>
+          <div class="card-footer">
+            <span class="card-tag">Interaktiv</span>
+            <span class="card-icon">↗</span>
+          </div>
+        </a>
+        <a class="card bio" href="https://dein-link.github.io/hormone" target="_blank">
+          <div class="card-label">Klasse 8</div>
+          <div class="card-title">Hormonsystem</div>
+          <div class="card-desc">Escape Gamebook: Wähle deinen Weg durch den Körper</div>
+          <div class="card-footer">
+            <span class="card-tag">Escape Game</span>
+            <span class="card-icon">↗</span>
+          </div>
+        </a>
+        <!-- + weitere Karten hier einfügen -->
+      </div>
+    </div>
+
+    <!-- CHEMIE -->
+    <div id="sec-Chemie" class="fach-section">
+      <div class="section-title">
+        <span class="section-dot" style="background:var(--chemie)"></span>
+        Chemie
+      </div>
+      <div class="cards-grid" id="grid-Chemie">
+        <a class="card chem" href="https://dein-link.github.io/pse" target="_blank">
+          <div class="card-label">Klasse 8–10</div>
+          <div class="card-title">Interaktives Periodensystem</div>
+          <div class="card-desc">PSE mit Hover- und Klickfunktion, auf Deutsch</div>
+          <div class="card-footer">
+            <span class="card-tag">Interaktiv</span>
+            <span class="card-icon">↗</span>
+          </div>
+        </a>
+        <a class="card chem" href="https://dein-link.github.io/luftverschmutzung" target="_blank">
+          <div class="card-label">Klasse 8</div>
+          <div class="card-title">Luftverschmutzung</div>
+          <div class="card-desc">Kriminalfall-Szenario: Wer hat die Luft verschmutzt?</div>
+          <div class="card-footer">
+            <span class="card-tag">Mystery</span>
+            <span class="card-icon">↗</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- PHYSIK -->
+    <div id="sec-Physik" class="fach-section">
+      <div class="section-title">
+        <span class="section-dot" style="background:var(--physik)"></span>
+        Physik
+      </div>
+      <div class="cards-grid" id="grid-Physik">
+        <a class="card phys" href="https://dein-link.github.io/boyle-mariotte" target="_blank">
+          <div class="card-label">Klasse 9</div>
+          <div class="card-title">Boyle-Mariotte-Gesetz</div>
+          <div class="card-desc">Kolben-Simulation mit p-V-Diagramm, animiert</div>
+          <div class="card-footer">
+            <span class="card-tag">Simulation</span>
+            <span class="card-icon">↗</span>
+          </div>
+        </a>
+        <a class="card phys" href="https://dein-link.github.io/helium-atom" target="_blank">
+          <div class="card-label">Klasse 8</div>
+          <div class="card-title">Helium-Atom</div>
+          <div class="card-desc">Visualisierung des quantenmechanischen 1s-Orbitals</div>
+          <div class="card-footer">
+            <span class="card-tag">Visualisierung</span>
+            <span class="card-icon">↗</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- INFORMATIK -->
+    <div id="sec-Informatik" class="fach-section">
+      <div class="section-title">
+        <span class="section-dot" style="background:var(--info-accent)"></span>
+        Informatik
+      </div>
+      <div class="cards-grid" id="grid-Informatik">
+        <a class="card info" href="https://dein-link.github.io/scratch-adventure" target="_blank">
+          <div class="card-label">Klasse 5–6</div>
+          <div class="card-title">Sci-Fi Abenteuer</div>
+          <div class="card-desc">Interaktives Story-Game zur Einführung in Algorithmen</div>
+          <div class="card-footer">
+            <span class="card-tag">Game</span>
+            <span class="card-icon">↗</span>
+          </div>
+        </a>
+        <a class="card info" href="https://dein-link.github.io/quadratzahlen" target="_blank">
+          <div class="card-label">Klasse 7</div>
+          <div class="card-title">Quadratzahlen-Spiel</div>
+          <div class="card-desc">Rechenspiel mit Highscore und Timer</div>
+          <div class="card-footer">
+            <span class="card-tag">Interaktiv</span>
+            <span class="card-icon">↗</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>Schulzentrum Oberes Elztal · U. Lucas · Unterrichtsmaterialien</footer>
+</div>
+
+<script>
+  // ── PASSWORT (hier ändern!) ──────────────────────
+  const PASSWORD = "elztal2025";
+  // ─────────────────────────────────────────────────
+
+  const SESSION_KEY = "ul_auth";
+
+  function checkLogin() {
+    const val = document.getElementById("pw-input").value;
+    if (val === PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, "1");
+      document.getElementById("login-overlay").classList.add("hidden");
+      document.getElementById("main").classList.add("visible");
+    } else {
+      document.getElementById("login-error").classList.add("show");
+      document.getElementById("pw-input").value = "";
+      document.getElementById("pw-input").focus();
+    }
+  }
+
+  // Enter-Taste
+  document.getElementById("pw-input").addEventListener("keydown", e => {
+    if (e.key === "Enter") checkLogin();
+  });
+
+  // Session-Check
+  if (sessionStorage.getItem(SESSION_KEY) === "1") {
+    document.getElementById("login-overlay").style.display = "none";
+    document.getElementById("main").style.opacity = "1";
+  }
+
+  // ── NAVIGATION ──────────────────────────────────
+  function showFach(fach, btn) {
+    // Alle Sektionen ausblenden
+    document.querySelectorAll(".fach-section").forEach(s => s.classList.remove("visible"));
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+
+    document.getElementById("sec-" + fach).classList.add("visible");
+    if (btn) btn.classList.add("active");
+  }
+
+  // ── KARTEN ZÄHLEN ───────────────────────────────
+  function updateCounts() {
+    const faecher = ["Biologie","Chemie","Physik","Informatik"];
+    const ids = { Biologie:"count-bio", Chemie:"count-chem", Physik:"count-phys", Informatik:"count-info" };
+    const gridIds = { Biologie:"grid-Biologie", Chemie:"grid-Chemie", Physik:"grid-Physik", Informatik:"grid-Informatik" };
+    faecher.forEach(f => {
+      const n = document.getElementById(gridIds[f]).querySelectorAll(".card").length;
+      document.getElementById(ids[f]).textContent = n + (n === 1 ? " Material" : " Materialien");
+    });
+  }
+  updateCounts();
+</script>
+</body>
+</html>
