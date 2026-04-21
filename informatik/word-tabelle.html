@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word – Tabelle erstellen</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --acc: #7B3FA0; --acc-l: #F0E6FA; --acc-m: #C89FE0;
+  --text: #1A1A1A; --text2: #555; --text3: #999;
+  --border: #D0D0D0; --shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #E8E2F2; min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: flex-start; padding: 20px 12px;
+}
+.app { width: 100%; max-width: 840px; }
+.page-title {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--acc);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.page-title span { height: 1px; flex: 1; background: var(--acc-m); opacity: 0.5; display: block; }
+.stage { display: flex; gap: 14px; align-items: flex-start; }
+
+/* Side panel */
+.panel {
+  width: 188px; flex-shrink: 0; background: white;
+  border-radius: 10px; border: 1px solid #DDD;
+  overflow: hidden; box-shadow: var(--shadow);
+}
+.panel-hdr {
+  background: var(--acc); padding: 8px 12px;
+  font-size: 10px; font-weight: 600; color: white;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.sitem {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 12px; cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.12s;
+}
+.sitem:hover { background: var(--acc-l); }
+.sitem.active { background: var(--acc-l); border-left-color: var(--acc); }
+.sdot {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid #CCC; background: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: #AAA; flex-shrink: 0;
+}
+.sitem.active .sdot { background: var(--acc); border-color: var(--acc); color: white; }
+.sitem.done .sdot { background: #4CAF50; border-color: #4CAF50; color: white; font-size: 11px; }
+.slbl { font-size: 11px; color: var(--text2); line-height: 1.3; }
+.sitem.active .slbl { color: var(--acc); font-weight: 500; }
+.explain {
+  padding: 12px; border-top: 1px solid #EEE;
+  background: #FAFAFA;
+}
+.ex-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.ex-desc { font-size: 11px; color: var(--text2); line-height: 1.5; }
+.ex-tip {
+  margin-top: 8px; padding: 5px 8px;
+  background: var(--acc-l); border-radius: 5px;
+  font-size: 10.5px; color: var(--acc); font-weight: 500;
+}
+
+/* Word window */
+.wword {
+  flex: 1; background: white; border-radius: 10px;
+  overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border);
+}
+.tbar {
+  background: #EEEAF5; height: 30px;
+  display: flex; align-items: center; padding: 0 10px; gap: 5px;
+  border-bottom: 1px solid #DDD;
+}
+.wico {
+  width: 15px; height: 15px; background: #185ABD; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 9px; font-weight: 700; flex-shrink: 0;
+}
+.ttitle { font-size: 11px; color: #444; flex: 1; margin-left: 4px; }
+.tctrls { display: flex; margin-left: auto; }
+.tbtn {
+  width: 40px; height: 30px; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; color: #666; cursor: default;
+}
+.tbtn.cl:hover { background: #C42B1C; color: white; }
+.rtabs {
+  background: #EEEAF5; display: flex; align-items: flex-end;
+  padding: 0 6px; border-bottom: 1px solid var(--border); gap: 1px;
+}
+.rtab {
+  padding: 5px 9px 4px; font-size: 10.5px; color: #555;
+  border-radius: 4px 4px 0 0; border: 1px solid transparent;
+  border-bottom: none; white-space: nowrap;
+}
+.rtab.active {
+  background: white; border-color: var(--border); color: var(--acc);
+  font-weight: 600; position: relative; top: 1px;
+}
+.rbar {
+  background: white; padding: 4px 10px;
+  display: flex; align-items: center; gap: 4px;
+  border-bottom: 1px solid var(--border); flex-wrap: wrap; min-height: 34px;
+}
+.rbtn {
+  padding: 2px 8px; font-size: 10.5px; border: 1px solid #D0D0D0;
+  border-radius: 3px; background: white; color: #333;
+  display: flex; align-items: center; gap: 3px; white-space: nowrap;
+}
+.rbtn.hi {
+  border-color: var(--acc); background: var(--acc-l); color: var(--acc);
+  font-weight: 600; animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 2px rgba(123,63,160,0.15); }
+  50%      { box-shadow: 0 0 0 4px rgba(123,63,160,0.3); }
+}
+.rsep { width: 1px; height: 20px; background: #DDD; margin: 0 2px; }
+.doc { padding: 20px 28px; min-height: 200px; position: relative; background: white; }
+.dtext { font-size: 11.5px; color: #555; margin-bottom: 12px; font-family: Georgia, serif; }
+.cur { display: inline-block; width: 1.5px; height: 12px; background: #333; vertical-align: text-bottom; animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.wtbl { border-collapse: collapse; font-size: 11px; font-family: Georgia, serif; animation: fi 0.25s ease; }
+@keyframes fi { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:none} }
+.wtbl td, .wtbl th { border: 1px solid #999; padding: 4px 10px; min-width: 72px; color: #222; }
+.wtbl th { background: #EDE0F5; font-weight: 600; color: #5a2080; }
+.dov { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+.dbox {
+  position: absolute; background: white; border: 1px solid #CCC;
+  border-radius: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.16);
+  font-size: 11px; overflow: hidden; animation: fi 0.15s ease;
+}
+.di { padding: 5px 14px; color: #222; }
+.di.hi { background: #EDE0F5; color: var(--acc); font-weight: 500; }
+.dsep2 { height: 1px; background: #EEE; margin: 2px 0; }
+.ghost {
+  padding: 7px; background: white; border: 1px solid #CCC;
+  border-radius: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.16);
+  position: absolute; left: 10px; top: 0; animation: fi 0.15s ease;
+}
+.ggrid { display: grid; grid-template-columns: repeat(5, 17px); gap: 2px; }
+.gc { width: 17px; height: 14px; border: 1px solid #CCC; border-radius: 1px; background: white; }
+.gc.on { background: var(--acc-m); border-color: var(--acc); }
+.glbl { font-size: 10px; color: var(--acc); text-align: center; margin-top: 4px; font-weight: 500; }
+.ctx {
+  position: absolute; left: 70px; top: 65px;
+  background: white; border: 1px solid #DDD; border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.14); font-size: 11px;
+  overflow: hidden; animation: fi 0.15s ease; min-width: 200px;
+}
+.ci { padding: 5px 14px; color: #222; }
+.ci.hi { background: #EDE0F5; color: var(--acc); }
+
+/* Progress + controls */
+.prog { margin: 12px 0 0; }
+.ptrack { height: 3px; background: #DDD; border-radius: 2px; overflow: hidden; }
+.pfill { height: 100%; background: var(--acc); border-radius: 2px; transition: width 0.35s cubic-bezier(.4,0,.2,1); }
+.ctrls { display: flex; gap: 7px; margin-top: 12px; align-items: center; }
+.cbtn {
+  padding: 6px 16px; font-size: 12.5px; font-family: inherit;
+  border-radius: 6px; border: 1.5px solid #CCC;
+  background: white; color: var(--text); cursor: pointer; font-weight: 500;
+  transition: all 0.12s;
+}
+.cbtn:hover { border-color: var(--acc); color: var(--acc); }
+.cbtn:disabled { opacity: 0.4; cursor: default; }
+.cbtn.pri { background: var(--acc); color: white; border-color: var(--acc); }
+.cbtn.pri:hover { background: #6a3090; }
+.cinfo { font-size: 11px; color: var(--text3); margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="page-title"><span></span>Word – Tabelle erstellen · Schritt für Schritt<span></span></div>
+  <div class="stage">
+    <div class="panel">
+      <div class="panel-hdr">Schritte</div>
+      <div id="stepList"></div>
+      <div class="explain" id="explain">
+        <div class="ex-title" id="exTitle"></div>
+        <div class="ex-desc" id="exDesc"></div>
+        <div id="exTip"></div>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div class="wword">
+        <div class="tbar">
+          <div class="wico">W</div>
+          <span class="ttitle">Dokument1 – Word</span>
+          <div class="tctrls">
+            <div class="tbtn">&#x2013;</div>
+            <div class="tbtn">&#x25A1;</div>
+            <div class="tbtn cl">&#x2715;</div>
+          </div>
+        </div>
+        <div class="rtabs" id="rtabs"></div>
+        <div class="rbar" id="rbar"></div>
+        <div class="doc" id="doc"><div class="dov" id="dov"></div></div>
+      </div>
+      <div class="prog"><div class="ptrack"><div class="pfill" id="pfill" style="width:12%"></div></div></div>
+      <div class="ctrls">
+        <button class="cbtn" id="prevBtn" onclick="go(-1)">← Zurück</button>
+        <button class="cbtn pri" id="nextBtn" onclick="go(1)">Weiter →</button>
+        <span class="cinfo" id="cinfo"></span>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var cur = 0;
+var steps = [
+  { lbl:"Einfügen-Tab", title:"Tab „Einfügen" öffnen", desc:"Klicke in der Menüleiste oben auf den Tab „Einfügen". Die Ribbon-Leiste zeigt Einfüge-Werkzeuge.", tip:"", tab:"ei", hiBtn:"tbl", drop:null, tbl:null },
+  { lbl:"Tabelle klicken", title:"Schaltfläche „Tabelle" klicken", desc:"Im Tab „Einfügen" findest du links die Schaltfläche „Tabelle". Klicke darauf – ein Menü öffnet sich.", tip:"Die Schaltfläche leuchtet auf", tab:"ei", hiBtn:"tbl", drop:"menu", tbl:null },
+  { lbl:"Größe wählen", title:"Tabellengröße auswählen", desc:"Fahre im Raster mit der Maus über die Felder. Word zeigt eine Live-Vorschau. Für 3×3: 3 nach rechts, 3 nach unten.", tip:"Oder: „Tabelle einfügen…" → Zahlen eingeben", tab:"ei", hiBtn:null, drop:"ghost", tbl:null },
+  { lbl:"Tabelle eingefügt", title:"Tabelle wird eingefügt", desc:"Word fügt die leere Tabelle ein. Alle Zellen sind gleich breit. Der Tab „Tabellenentwurf" erscheint.", tip:"", tab:"tb", hiBtn:null, drop:null, tbl:"empty" },
+  { lbl:"Kopfzeile füllen", title:"Überschriften eintragen", desc:"Klicke in die erste Zelle und tippe die Spaltentitel. Mit Tab springst du zur nächsten Zelle.", tip:"Tab ↹ wechselt zur nächsten Zelle", tab:"tb", hiBtn:null, drop:null, tbl:"head" },
+  { lbl:"Daten eintragen", title:"Inhalte eintragen", desc:"Fülle die restlichen Zellen mit deinen Daten aus.", tip:"Tab ↹ springt durch alle Zellen", tab:"tb", hiBtn:null, drop:null, tbl:"full" },
+  { lbl:"Zeile einfügen", title:"Neue Zeile hinzufügen", desc:"Rechtsklick in eine Tabellenzeile → „Zeilen einfügen darunter". Word fügt eine neue leere Zeile ein.", tip:"Schnell: Tab in letzter Zelle → neue Zeile", tab:"tb", hiBtn:null, drop:"ctx", tbl:"full" },
+  { lbl:"Fertig! ✓", title:"Tabelle abgeschlossen", desc:"Fertig! Über den Tab „Tabellenentwurf" kannst du Farben, Rahmen und Stile anpassen.", tip:"Tabellenentwurf → Schattierung für Zellfarben", tab:"tb", hiBtn:"sh", drop:null, tbl:"done" }
+];
+
+function renderRibbon(s) {
+  var tabs = [
+    {id:"st",lbl:"Start"},{id:"ei",lbl:"Einfügen"},{id:"sl",lbl:"Seitenlayout"},{id:"ve",lbl:"Verweise"}
+  ];
+  if (s.tab === "tb") tabs.push({id:"tb",lbl:"Tabellenentwurf"},{id:"la",lbl:"Layout"});
+  var h = "";
+  tabs.forEach(function(t){ h += '<div class="rtab'+(t.id===s.tab?' active':'')+'">'+t.lbl+'</div>'; });
+  document.getElementById("rtabs").innerHTML = h;
+
+  var btns;
+  if (s.tab === "ei") {
+    btns = [
+      {id:"tbl",lbl:"&#9783; Tabelle"},{sep:1},
+      {id:"bi",lbl:"&#128444; Bilder"},{id:"fo",lbl:"&#9632; Formen"},
+      {id:"li",lbl:"&#128279; Link"},{id:"kf",lbl:"Kopf-/Fußzeile"}
+    ];
+  } else {
+    btns = [
+      {id:"sh",lbl:"&#9632; Schattierung"},{id:"ra",lbl:"Rahmen"},{sep:1},
+      {id:"ze",lbl:"+ Zeile"},{id:"sp",lbl:"+ Spalte"},{id:"te",lbl:"Teilen"},{sep:1},{id:"stil",lbl:"Stil"}
+    ];
+  }
+  var bh = "";
+  btns.forEach(function(b){
+    if (b.sep) { bh += '<div class="rsep"></div>'; return; }
+    bh += '<div class="rbtn'+(s.hiBtn===b.id?' hi':'')+'">'+b.lbl+'</div>';
+  });
+  document.getElementById("rbar").innerHTML = bh;
+}
+
+function renderDoc(s) {
+  var h = '<div class="dov" id="dov"></div>';
+  h += '<p class="dtext">Mein Dokument<span class="cur"></span></p>';
+  if (s.tbl === "empty") h += '<table class="wtbl"><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></table>';
+  else if (s.tbl === "head") h += '<table class="wtbl"><tr><th>Montag</th><th>Dienstag</th><th>Mittwoch</th></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></table>';
+  else if (s.tbl === "full") h += '<table class="wtbl"><tr><th>Montag</th><th>Dienstag</th><th>Mittwoch</th></tr><tr><td>Mathe</td><td>Deutsch</td><td>Englisch</td></tr><tr><td>Sport</td><td>Kunst</td><td>Bio<span class="cur"></span></td></tr></table>';
+  else if (s.tbl === "done") h += '<table class="wtbl"><tr><th>Montag</th><th>Dienstag</th><th>Mittwoch</th></tr><tr><td>Mathe</td><td>Deutsch</td><td>Englisch</td></tr><tr><td>Sport</td><td>Kunst</td><td>Bio</td></tr><tr><td>Musik</td><td>Geschichte</td><td>Physik</td></tr></table>';
+  document.getElementById("doc").innerHTML = h;
+
+  if (s.drop === "menu") {
+    document.getElementById("dov").innerHTML = '<div class="dbox" style="left:12px;top:0;min-width:160px"><div class="di hi">&#9783; Tabelle einfügen…</div><div class="dsep2"></div><div class="di">Schnelltabellen &#9658;</div><div class="di">Excel-Tabelle</div></div>';
+  } else if (s.drop === "ghost") {
+    var g = '<div class="ghost"><div class="ggrid">';
+    for (var r=0;r<4;r++) for (var c=0;c<5;c++) g += '<div class="gc'+(r<3&&c<3?' on':'')+'"></div>';
+    g += '</div><div class="glbl">3 × 3 Tabelle</div></div>';
+    document.getElementById("dov").innerHTML = g;
+  } else if (s.drop === "ctx") {
+    document.getElementById("dov").innerHTML = '<div class="ctx"><div class="ci">Zellen verbinden</div><div class="dsep2"></div><div class="ci hi">Zeilen einfügen darunter</div><div class="ci">Spalten einfügen rechts</div><div class="dsep2"></div><div class="ci">Zeile löschen</div></div>';
+  }
+}
+
+function render() {
+  var s = steps[cur];
+  // Side list
+  var lh = "";
+  steps.forEach(function(st,i){
+    var cls = i===cur?"active":(i<cur?"done":"");
+    lh += '<div class="sitem '+cls+'" onclick="jump('+i+')">';
+    lh += '<div class="sdot">'+(i<cur?"✓":(i+1))+'</div>';
+    lh += '<div class="slbl">'+st.lbl+'</div></div>';
+  });
+  document.getElementById("stepList").innerHTML = lh;
+  document.getElementById("exTitle").textContent = s.title;
+  document.getElementById("exDesc").textContent = s.desc;
+  document.getElementById("exTip").innerHTML = s.tip ? '<div class="ex-tip">▶ '+s.tip+'</div>' : '';
+  renderRibbon(s);
+  renderDoc(s);
+  document.getElementById("pfill").style.width = Math.round((cur+1)/steps.length*100)+"%";
+  var pb = document.getElementById("prevBtn");
+  pb.disabled = cur===0;
+  document.getElementById("nextBtn").textContent = cur===steps.length-1 ? "↺ Neu starten" : "Weiter →";
+  document.getElementById("cinfo").textContent = (cur+1)+" von "+steps.length;
+}
+
+function go(d) {
+  if (d===1 && cur===steps.length-1) cur=0;
+  else cur = Math.max(0,Math.min(steps.length-1,cur+d));
+  render();
+}
+function jump(i){ cur=i; render(); }
+
+try {
+  document.addEventListener("keydown", function(e){
+    if(e.key==="ArrowRight"||e.key==="ArrowDown") go(1);
+    if(e.key==="ArrowLeft"||e.key==="ArrowUp") go(-1);
+  });
+} catch(e){}
+
+render();
+</script>
+</body>
+</html>
